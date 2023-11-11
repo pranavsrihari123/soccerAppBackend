@@ -1,49 +1,70 @@
-const pool = require('../config/database');
+const { DataTypes } = require('sequelize');
 const bcrypt = require('bcrypt');
+const faker = require('faker'); // Import Faker for generating random data
 
-const userModel = {
-  signup: async (username, password, firstName, lastName, email, phoneNumber, dateOfBirth, skillLevel) => {
-    try {
-      // Store the user data in the database
-      const insertProfileQuery = `
-        INSERT INTO profiles (username, password, first_name, last_name, email, phone_number, date_of_birth, skill_level)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      `;
-      await pool.query(insertProfileQuery, [
-        username,
-        password,
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-        dateOfBirth,
-        skillLevel,
-      ]);
-    } catch (error) {
-      throw error;
-    }
-  },
+module.exports = (sequelize) => {
+  const User = sequelize.define('user', {
+    username: { type: DataTypes.STRING, allowNull: false, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false },
+    user_role: { type: DataTypes.ENUM('player', 'host'), allowNull: false },
+    first_name: { type: DataTypes.STRING },
+    last_name: { type: DataTypes.STRING },
+    date_of_birth: { type: DataTypes.DATEONLY }, // New field for date of birth
+    skill_level: { type: DataTypes.STRING },
+    rating: { type: DataTypes.NUMERIC(6, 2) },
+    team_id: { type: DataTypes.INTEGER, references: { model: 'teams', key: 'team_id' } },
+    gender: { type: DataTypes.STRING(10) },
+  });
 
-  login: async (username, password) => {
-    try {
-      // Verify the user's credentials
-      const query = 'SELECT password FROM profiles WHERE username = $1';
-      const result = await pool.query(query, [username]);
-
-      if (result.rows.length === 0) {
-        // User with the given username not found
-        return false;
+  const userModel = {
+    signup: async (username, password, email, userRole, firstName, lastName, dateOfBirth, skillLevel, rating, teamId, gender) => {
+      try {
+        // Store the user data in the database
+        await User.create({
+          username,
+          password,
+          email,
+          user_role: userRole,
+          first_name: firstName,
+          last_name: lastName,
+          date_of_birth: dateOfBirth, // Changed line to include date of birth
+          skill_level: skillLevel,
+          rating: rating,
+          team_id: teamId,
+          gender: gender,
+        });
+      } catch (error) {
+        throw error;
       }
-      const storedHashedPassword = result.rows[0].password;
+    },
 
-      // Compare the provided password with the stored hashed password
-      const isPasswordValid = await bcrypt.compare(password, storedHashedPassword);
+    login: async (username, password) => {
+      try {
+        // Verify the user's credentials
+        const user = await User.findOne({ where: { username } });
 
-      return isPasswordValid;
-    } catch (error) {
-      throw error;
-    }
-  },
+        if (!user) {
+          // User with the given username not found
+          return false;
+        }
+
+        const storedHashedPassword = user.password;
+
+        // Compare the provided password with the stored hashed password
+        const isPasswordValid = await bcrypt.compare(password, storedHashedPassword);
+
+        return isPasswordValid;
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    // Additional methods can be added here for managing user-related operations
+  };
+
+  return {
+    User,
+    userModel,
+  };
 };
-
-module.exports = userModel;
