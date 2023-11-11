@@ -1,29 +1,28 @@
 const { Sequelize, DataTypes } = require('sequelize');
+const { v4: uuidv4 } = require('uuid');
 const faker = require('faker');
-const dbConfig = require('./config/database.js'); // Update the path accordingly
+const config = require('./config/config.json'); // Update the path accordingly
 
-const sequelize = new Sequelize({
-  dialect: dbConfig.dialect,
-  host: dbConfig.host,
-  port: dbConfig.port,
-  username: dbConfig.username,
-  password: dbConfig.password,
-  database: dbConfig.database,
-  define: dbConfig.define,
-});
+const sequelize = new Sequelize(config.development); // Use the 'development' configuration
 
 // Define models
 const User = sequelize.define('user', {
-    username: { type: DataTypes.STRING(255), allowNull: false },
-    password: { type: DataTypes.STRING(255), allowNull: false },
-    email: { type: DataTypes.STRING(255), allowNull: false },
-    user_role: { type: DataTypes.ENUM('player', 'host'), allowNull: false },
-    first_name: { type: DataTypes.STRING(255), allowNull: false },
-    last_name: { type: DataTypes.STRING(255), allowNull: false },
-    date_of_birth: { type: DataTypes.DATEONLY }, // New field for date of birth
-    skill_level: { type: DataTypes.STRING(20), allowNull: false },
-    rating: { type: DataTypes.NUMERIC(6, 2) },
-    gender: { type: DataTypes.STRING(10), allowNull: false },
+  user_id: {
+    type: DataTypes.UUID,
+    defaultValue: () => uuidv4(),
+    primaryKey: true,
+    allowNull: false,
+  },
+  username: { type: DataTypes.STRING(255), allowNull: false },
+  password: { type: DataTypes.STRING(255), allowNull: false },
+  email: { type: DataTypes.STRING(255), allowNull: false },
+  user_role: { type: DataTypes.ENUM('player', 'host'), allowNull: false },
+  first_name: { type: DataTypes.STRING(255), allowNull: false },
+  last_name: { type: DataTypes.STRING(255), allowNull: false },
+  date_of_birth: { type: DataTypes.DATEONLY },
+  skill_level: { type: DataTypes.STRING(20), allowNull: false },
+  rating: { type: DataTypes.NUMERIC(6, 2) },
+  gender: { type: DataTypes.STRING(10), allowNull: false },
 });
 
 const Team = sequelize.define('team', {

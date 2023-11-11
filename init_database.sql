@@ -44,7 +44,7 @@ CREATE INDEX IF NOT EXISTS idx_teams_team_name ON teams (team_name);
 
 -- Create a User table
 CREATE TABLE IF NOT EXISTS users (
-    user_id SERIAL PRIMARY KEY,
+    user_id UUID PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -68,7 +68,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);
 -- Create an ImportantDates table
 CREATE TABLE IF NOT EXISTS important_dates (
     date_id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(user_id),
+    user_id UUID REFERENCES users(user_id),
     event_name VARCHAR(255) NOT NULL,
     event_date DATE NOT NULL
 );

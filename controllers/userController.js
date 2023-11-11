@@ -1,28 +1,76 @@
-const bcrypt = require('bcrypt');
-const { User, userModel } = require('../models/userModel'); // Import the Users object from userModel
+const User = require('../models/userModel');
+const { v4: uuidv4 } = require('uuid');
 
-module.exports = (sequelize) => {
-  // Pass the sequelize instance to userModel
-  const { userModel: userModelWithSequelize } = require('../models/userModel')(sequelize);
+// Controller function to create a new user
+async function createUser(req, res) {
+  try {
+    console.log('Request Body:', req.body);
 
-  const userController = {
-    signup: async (req, res) => {
-      const { username, password, email, userRole, firstName, lastName, date_of_birth, skillLevel, rating, teamId, gender } = req.body;
+    // Generate a random user_id using uuid
+    const user_id = uuidv4();
 
-      try {
-        // Hash the password using bcrypt
-        const hashedPassword = await bcrypt.hash(password, 10);
+    // Extract user data from the request body
+    const {
+      username,
+      password,
+      email,
+      user_role,
+      first_name,
+      last_name,
+      date_of_birth,
+      skill_level,
+      rating,
+      team_id,
+      gender,
+    } = req.body;
 
-        // Store the user data in the database using the correct import
-        await userModelWithSequelize.signup(username, hashedPassword, email, userRole, firstName, lastName, date_of_birth, skillLevel, rating, teamId, gender);
+    // Check if required fields are present
+    if (!username || !password || !email || !user_role || !first_name || !last_name) {
+      // Log each value individually
+      console.log('Missing required fields. Request Body:');
+      console.log('Username:', username);
+      console.log('Password:', password);
+      console.log('Email:', email);
+      console.log('User Role:', user_role);
+      console.log('First Name:', first_name);
+      console.log('Last Name:', last_name);
 
-        res.status(201).json({ message: 'Account created successfully' });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Something went wrong. Please try again.' });
-      }
-    },
-  };
+      return res.status(400).json({
+        error: 'Missing required fields',
+      });
+    }
 
-  return userController;
+    // Create a new user in the database with the generated user_id
+    const newUser = await User.create({
+      user_id,
+      username,
+      password,
+      email,
+      user_role,
+      first_name,
+      last_name,
+      date_of_birth,
+      skill_level,
+      rating,
+      team_id,
+      gender,
+    });
+
+    // Send a success response
+    res.status(201).json({
+      message: 'User created successfully',
+      user: newUser,
+    });
+  } catch (error) {
+    // Handle errors and send an error response
+    console.error('Error creating user:', error.message);
+    res.status(500).json({
+      error: 'Internal Server Error',
+    });
+  }
+}
+
+// Export the controller function
+module.exports = {
+  createUser,
 };

@@ -1,41 +1,32 @@
-// server.js
-const { Sequelize } = require('sequelize');
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
 
-// Import database configuration
-const dbConfig = require('./config/database.js');
-const sequelize = new Sequelize({
-  dialect: dbConfig.dialect,
-  host: dbConfig.host,
-  port: dbConfig.port,
-  username: dbConfig.username,
-  password: dbConfig.password,
-  database: dbConfig.database,
-  define: dbConfig.define,
-});
+// Import Sequelize from the initialization file
+const sequelize = require('./sequelize_init');
+//console.log('server sequelize:', sequelize);
 
 // Use body parser middleware
 app.use(bodyParser.json());
 
-// Set up routes
-const userRoutes = require('./routes/userRoutes')(sequelize);
+// Require userRoutes module and pass Sequelize instance when requiring the module
+const userRoutes = require('./routes/userRoutes');
+//console.log('server sequelize:', sequelize); // Log Sequelize instance for debugging purposes
 const authRoutes = require('./routes/authRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 
+// Define routes for different parts of the application
 app.use('/user', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/api', teamRoutes);
 
-// ... other routes and server setup
 
-// Export the sequelize instance
+// Export app, port, and sequelize together
 module.exports = {
   app,
-  sequelize,
   port,
+  sequelize,
 };
 
 // Start the server
