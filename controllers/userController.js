@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const Team = require('../models/teamModel');
 const { v4: uuidv4 } = require('uuid');
 
 // Controller function to create a new user
@@ -70,7 +71,46 @@ async function createUser(req, res) {
   }
 }
 
+// Function to get teams for a user by UUID
+async function getUserTeams(req, res) {
+    try {
+      const userUUID = req.body.userId;
+      console.log(userUUID);
+  
+      // Find user and include associated teams
+      console.log("start000000");
+      const user = await User.findByPk(userUUID, {
+        include: [{ model: Team, through: 'user_teams' }],
+      });
+
+      console.log(user);
+      console.log("end00000");
+  
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      console.log("start");
+      // Extract teams from the user object
+      const teamList = user.teams.map((team) => {
+        return {
+          team_id: team.team_id,
+          team_name: team.team_name,
+          // ... other team attributes
+        };
+      });
+      console.log("end");
+  
+      res.json(teamList);
+    } catch (error) {
+      console.error('Error getting user teams:', error.message);
+      res.status(500).json({
+        error: 'Internal Server Error',
+      });
+    }
+}
 // Export the controller function
 module.exports = {
   createUser,
+  getUserTeams,
 };

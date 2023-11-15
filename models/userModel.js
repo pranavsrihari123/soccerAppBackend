@@ -1,6 +1,8 @@
 // Import the required modules
 const { DataTypes } = require('sequelize');
 const sequelize  = require('../sequelize_init'); // Assuming you have a database connection in a separate file
+const bcrypt = require('bcrypt');
+//const UserTeam = require('./userTeamModel');
 
 // Define the User model based on the provided schema
 const User = sequelize.define('user', {
@@ -45,19 +47,27 @@ const User = sequelize.define('user', {
   rating: {
     type: DataTypes.DECIMAL(6, 2),
   },
-  team_id: {
-    type: DataTypes.INTEGER,
-    references: {
-      model: 'teams', // Assuming there is a 'teams' table
-      key: 'team_id',
-    },
-  },
   gender: {
     type: DataTypes.STRING(10),
     validate: {
       isIn: [['male', 'female']],
     },
   },
+});
+
+// Define associations later using the associate method
+User.associate = (models) => {
+    User.belongsToMany(models.Team, {
+      through: 'user_teams', // Junction table name
+      foreignKey: 'user_id',
+    });
+    //User.hasMany(models.TeamChat, { foreignKey: 'sender_id' });
+};
+
+// Hook to hash the user's password before saving to the database
+User.beforeCreate(async (user) => {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    user.password = hashedPassword;
 });
 
 // Synchronize the model with the database

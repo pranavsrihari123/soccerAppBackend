@@ -4,6 +4,6 @@ const teamController = require('../controllers/teamController');
 const router = express.Router();
 
 // Define routes
-router.get('/teams', teamController.getTeams);
+router.get('/teamList', teamController.getTeams);
 
 module.exports = router;

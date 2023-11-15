@@ -26,6 +26,12 @@ const User = sequelize.define('user', {
 });
 
 const Team = sequelize.define('team', {
+  team_id: {
+    type: DataTypes.UUID,
+    defaultValue: () => uuidv4(),
+    primaryKey: true,
+    allowNull: false,
+  },
   team_name: { type: DataTypes.STRING(255), allowNull: false },
   team_rating: { type: DataTypes.NUMERIC(6, 2), defaultValue: 0 },
   number_of_players: { type: DataTypes.INTEGER, defaultValue: 1 },
@@ -62,8 +68,8 @@ const Game = sequelize.define('game', {
 });
 
 // Define associations
-Team.hasMany(User, { foreignKey: 'team_id' });
-User.belongsTo(Team, { foreignKey: 'team_id' });
+Team.belongsToMany(User, { through: 'user_teams', foreignKey: 'team_id' });
+User.belongsToMany(Team, { through: 'user_teams', foreignKey: 'user_id' });
 
 ImportantDate.belongsTo(User, { foreignKey: 'user_id' });
 Court.hasMany(Game, { foreignKey: 'court_id' });
@@ -88,11 +94,24 @@ sequelize.sync({ force: true }) // Using force: true will drop tables and recrea
 
     // Populate teams
     const teams = await Team.bulkCreate(Array.from({ length: 5 }, () => ({
-      team_name: faker.company.companyName(),
-      type_of_sport: faker.random.arrayElement(['basketball', 'soccer', 'football']),
-      intensity: faker.random.arrayElement(['casual', 'competitive']),
-      gender: faker.random.arrayElement(['men', 'women', 'co-ed']),
+        team_name: faker.company.companyName(),
+        team_rating: faker.random.float({ min: 1, max: 5, precision: 0.1 }),
+        number_of_players: faker.random.number({ min: 1, max: 10 }),
+        max_number_of_players: faker.random.number({ min: 5, max: 15 }),
+        type_of_sport: faker.random.arrayElement(['basketball', 'soccer', 'football']),
+        intensity: faker.random.arrayElement(['casual', 'competitive']),
+        gender: faker.random.arrayElement(['men', 'women', 'co-ed']),
     })));
+
+    // Populate user_teams junction table
+    const userTeams = [];
+    users.forEach(user => {
+      const teamIds = faker.random.arrayElements(teams.map(team => team.team_id), faker.random.number({ min: 1, max: 3 }));
+      teamIds.forEach(teamId => {
+        userTeams.push({ user_id: user.user_id, team_id: teamId });
+      });
+    });
+    await sequelize.models.user_teams.bulkCreate(userTeams);
 
     // Populate important dates
     const importantDates = await ImportantDate.bulkCreate(Array.from({ length: 5 }, () => ({

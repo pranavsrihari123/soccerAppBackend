@@ -22,3 +22,17 @@ sequelize
   });
 
 module.exports = sequelize;
+
+const models = {
+  User: require('./models/userModel'),
+  Team: require('./models/teamModel'),
+  UserTeam: require('./models/userTeamModel'),
+  //TeamChat: require('./models/teamChatModel'),
+};
+
+// Associate the models
+Object.values(models).forEach(model => {
+  if (model.associate) {
+    model.associate(models);
+  }
+});
