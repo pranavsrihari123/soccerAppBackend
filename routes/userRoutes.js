@@ -8,6 +8,7 @@ const authController = require('../controllers/authController'); // Pass the seq
 
 router.post('/signup', userController.createUser);
 router.post('/getTeams', userController.getUserTeams);
+router.post('/getFriends', userController.getUserFriends);
 router.post('/login', authController.loginUser);
 
 module.exports = router;

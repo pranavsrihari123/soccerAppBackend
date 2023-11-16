@@ -62,6 +62,13 @@ User.associate = (models) => {
       foreignKey: 'user_id',
     });
     //User.hasMany(models.TeamChat, { foreignKey: 'sender_id' });
+    // Define the many-to-many association
+    User.belongsToMany(models.User, {
+      as: 'Friend',
+      through: 'friends', // The intermediate table name (adjust based on your actual table name)
+      foreignKey: 'user_id_1', // Foreign key in the 'friends' table that points to the user
+      otherKey: 'user_id_2',
+    });
 };
 
 // Hook to hash the user's password before saving to the database

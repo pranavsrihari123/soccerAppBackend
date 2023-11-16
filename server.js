@@ -15,9 +15,10 @@ app.use(bodyParser.json());
 
 
 const establishTeamChat = require('./controllers/teamChatController')(io);
+const establishPrivateChat = require('./controllers/privateChatController')(io);
 // Require userRoutes module and pass Sequelize instance when requiring the module
 const userRoutes = require('./routes/userRoutes');
-const chatRoutes = require('./routes/chatRoutes');
+//const chatRoutes = require('./routes/chatRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 
 // Define routes for different parts of the application

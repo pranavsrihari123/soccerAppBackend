@@ -63,6 +63,21 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users (username);
 -- Index on email for quick email-based logins
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users (email);
 
+-- Create a Friends table
+CREATE TABLE IF NOT EXISTS friends (
+    friendship_id SERIAL PRIMARY KEY,
+    user_id_1 UUID REFERENCES users(user_id),
+    user_id_2 UUID REFERENCES users(user_id)
+    -- CONSTRAINT unique_friendship UNIQUE (user_id_1, user_id_2)
+);
+
+-- Index on user_id_1 for efficient friend-related queries
+CREATE INDEX IF NOT EXISTS idx_friends_user_id_1 ON friends (user_id_1);
+
+-- Index on user_id_2 for efficient friend-related queries
+CREATE INDEX IF NOT EXISTS idx_friends_user_id_2 ON friends (user_id_2);
+
+
 -- Create a junction table for user-team relationships
 CREATE TABLE IF NOT EXISTS user_teams (
     user_id UUID REFERENCES users(user_id),
@@ -121,6 +136,23 @@ CREATE TABLE IF NOT EXISTS team_chats (
 
 -- Index on team_id for efficient team-related queries
 CREATE INDEX IF NOT EXISTS idx_team_chats_team_id ON team_chats (team_id);
+
+-- Create a PrivateMessages table for private chats
+CREATE TABLE IF NOT EXISTS private_messages (
+    message_id SERIAL PRIMARY KEY,
+    sender_id UUID REFERENCES users(user_id),
+    receiver_id UUID REFERENCES users(user_id),
+    message_text TEXT NOT NULL,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index on sender_id and receiver_id for efficient queries
+CREATE INDEX IF NOT EXISTS idx_private_messages_sender_receiver
+ON private_messages (sender_id, receiver_id);
+
+-- Index on receiver_id for efficient queries
+CREATE INDEX IF NOT EXISTS idx_private_messages_receiver_id
+ON private_messages (receiver_id);
 
 -- Create a Games table
 CREATE TABLE IF NOT EXISTS games (
